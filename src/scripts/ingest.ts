@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import pool from '../db';
 
 const OLLAMA_URL = 'http://localhost:11434/api/embeddings';
 const DB_CONNECTION_STRING = 'postgres://postgres:mysecretpassword@localhost:5432/rag_db';
@@ -12,8 +13,6 @@ const sampleNote = {
 
 async function ingest() {
   console.log(`🔌 Connecting to DB...`);
-  const client = new Client({ connectionString: DB_CONNECTION_STRING });
-  await client.connect();
 
   try {
     // 1. Get the Embedding from Ollama (The Eyes)
@@ -49,11 +48,11 @@ async function ingest() {
       RETURNING id;
     `;
     
-    await client.query(query, [
+    const res = await pool.query(query, [
       sampleNote.content, 
       sampleNote.metadata, 
-      JSON.stringify(vector),
-      sampleNote.namespace // Pass the folder name
+      vectorString,
+      sampleNote.namespace
     ]);
 
     console.log(`🎉 Success! Inserted row with ID: ${res.rows[0].id}`);
@@ -61,7 +60,7 @@ async function ingest() {
   } catch (err) {
     console.error('❌ Error:', err);
   } finally {
-    await client.end();
+    await pool.end();
   }
 }
 

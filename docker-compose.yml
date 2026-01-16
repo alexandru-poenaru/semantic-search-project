@@ -12,7 +12,7 @@ services:
       # 1. Persist data so it doesn't vanish when you stop Docker
       - ./postgres_data:/var/lib/postgresql/data
       # 2. Run our init script on the very first startup
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
 
   # Optional: A GUI for your DB (like phpMyAdmin but for Postgres)
