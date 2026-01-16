@@ -30,7 +30,7 @@ CREATE OR REPLACE FUNCTION match_documents (
   query_embedding vector(768),
   match_threshold float,
   match_count int,
-  filter_category_id bigint DEFAULT NULL
+  filter_category_ids bigint[] DEFAULT NULL
 )
 RETURNS TABLE (
   id bigint,
@@ -51,12 +51,12 @@ BEGIN
     1 - (d.embedding <=> query_embedding) AS similarity
   FROM documents d
   WHERE 1 - (d.embedding <=> query_embedding) > match_threshold
-  AND (filter_category_id IS NULL OR d.category_id = filter_category_id)
+  -- The Magic Change: Check if the category is ANY of the provided IDs
+  AND (filter_category_ids IS NULL OR d.category_id = ANY(filter_category_ids))
   ORDER BY d.embedding <=> query_embedding
   LIMIT match_count;
 END;
 $$;
-
 -- 5. Seed Default Categories (Optional but helpful)
 INSERT INTO categories (name) VALUES 
   ('General'), 
