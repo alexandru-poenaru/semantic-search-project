@@ -1,0 +1,29 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: local-rag-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: rag_db
+    volumes:
+      # 1. Persist data so it doesn't vanish when you stop Docker
+      - ./postgres_data:/var/lib/postgresql/data
+      # 2. Run our init script on the very first startup
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  # Optional: A GUI for your DB (like phpMyAdmin but for Postgres)
+  # This saves you from having to use the command line to check data
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
